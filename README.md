@@ -13,7 +13,7 @@ Once you've mined a coin you will get a recipeint id in the response such as "87
 You can create a new transaction using by making a POST request to: localhost:8000/transactions/new
 
   Sample transaction body:
-    ```json
+    ```javascript
     {
     "sender": "address provided after you mine",
     "recipient": "someone else's address",
@@ -24,7 +24,7 @@ You can create a new transaction using by making a POST request to: localhost:80
  You can get the full chain by making a GET request to: localhost:8000/chain
  
    Sample Chain:
-     ```json
+     ```javascript
      {
          "chain": [
              {
