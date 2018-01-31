@@ -24,7 +24,7 @@ Once you've mined a coin you will get a recipeint id in the response such as "87
 5. You can get the full chain by making a GET request to: localhost:8000/chain
  
    Sample Chain:
-   ```javascript
+```javascript
 {
     "chain": [{
             "index": 1,
