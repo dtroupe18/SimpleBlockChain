@@ -19,7 +19,7 @@ You can create a new transaction using by making a POST request to: localhost:80
     "recipient": "someone else's address",
     "amount": 5
     }
-    '''
+    ```
  
  You can get the full chain by making a GET request to: localhost:8000/chain
  
@@ -50,4 +50,4 @@ You can create a new transaction using by making a POST request to: localhost:80
         ],
         "length": 2
     }
-     '''
+    ```
