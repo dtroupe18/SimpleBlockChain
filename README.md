@@ -54,6 +54,6 @@ You can run the script on multiple machines or change the port number to run two
 app.run(host='0.0.0.0', port=8000)
 app.run(host='0.0.0.0', port=8001)
 ```
-
+Once you have two or more nodes running you can make a GET request to: localhost:8000/nodes/resolve
 
 
