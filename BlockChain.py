@@ -11,7 +11,7 @@ class BlockChain(object):
 
     def __init__(self):
         self.chain = []
-        self.current_transactions = []
+        self.current_records = []
         self.nodes = set()
 
         # Create Genesis block
@@ -31,33 +31,35 @@ class BlockChain(object):
         block = {
             'index': len(self.chain) + 1,
             'timestamp': time(),
-            'transactions': self.current_transactions,
+            'transactions': self.current_records,
             'proof': proof,
             'previous_hash': previous_hash or self.hash(self.chain[-1])
         }
 
         # Clear current transactions
         #
-        self.current_transactions = []
+        self.current_records = []
         self.chain.append(block)
 
         return block
 
-    def new_transaction(self, sender, recipient, amount):
+    def new_record(self, patient, physician, date, notes):
         """
         Creates a new transaction to go into the next mined Block
 
-        :param sender: str
-        :param recipient: str
-        :param amount: int
+        :param patient: str - patients name
+        :param physician: str - doctors name
+        :param date: str - Feb 20, 2018
+        :param notes: str - notes about appointment
 
         :return: int The index of the Block that will hold this transaction
         """
 
-        self.current_transactions.append({
-            'sender': sender,
-            'recipient': recipient,
-            'amount': amount,
+        self.current_records.append({
+            'patient': patient,
+            'physician': physician,
+            'date': date,
+            'notes': notes
         })
 
         return self.last_block['index'] + 1
@@ -232,33 +234,39 @@ def mine():
     3. Add the new block to the chain
     """
 
-    # calculate the proof of work
+    # prevents mining when there aren't any transactions
     #
-    last_block = block_chain.last_block
-    proof = block_chain.proof_of_work(last_block)
+    if block_chain.current_records:
+        # calculate the proof of work
+        #
+        last_block = block_chain.last_block
+        proof = block_chain.proof_of_work(last_block)
 
-    # reward the miner sender is '0' for the server
-    #
-    block_chain.new_transaction(
-        sender="0",
-        recipient=node_identifier,
-        amount=1
-    )
+        # Add the new block to the chain
+        #
+        previous_hash = block_chain.hash(last_block)
+        new_block = block_chain.new_block(proof, previous_hash)
 
-    # Add the new block to the chain
-    #
-    previous_hash = block_chain.hash(last_block)
-    new_block = block_chain.new_block(proof, previous_hash)
+        response = {
+            'message': "New Block Forged EHR records added",
+            'index': new_block['index'],
+            'transactions': new_block['transactions'],
+            'proof': new_block['proof'],
+            'previous_hash': new_block['previous_hash']
+        }
 
-    response = {
-        'message': "New Block Forged",
-        'index': new_block['index'],
-        'transactions': new_block['transactions'],
-        'proof': new_block['proof'],
-        'previous_hash': new_block['previous_hash']
-    }
+        return flask.jsonify(response), 200
 
-    return flask.jsonify(response), 200
+    else:
+        response = {
+            'message': "Nothing to mine...",
+            'index': -1,
+            'transactions': "None",
+            'proof': "None",
+            'previous_hash': "None"
+        }
+
+        return flask.jsonify(response), 200
 
 
 @app.route('/transactions/new', methods=['POST'])
@@ -267,18 +275,20 @@ def new_transaction():
 
     # Check that all the data is there
     #
-    if 'sender' not in values:
-        return "Missing Sender", 400
-    if 'recipient' not in values:
-        return "Missing Recipient", 400
-    if 'amount' not in values:
-        return "Missing Amount", 400
+    if 'patient' not in values:
+        return "Missing Patient", 400
+    if 'physician' not in values:
+        return "Missing Physician", 400
+    if 'date' not in values:
+        return "Missing Date", 400
+    if 'notes' not in values:
+        return "Missing Notes", 400
 
     # Create a new transaction
     #
-    index = block_chain.new_transaction(values['sender'], values['recipient'], values['amount'])
+    index = block_chain.new_record(values['patient'], values['physician'], values['date'], values['notes'])
 
-    response = {'message': f'Transaction will be added to Block{index}'}
+    response = {'message': f'Record will be added to Block {index}'}
 
     return flask.jsonify(response), 201
 
