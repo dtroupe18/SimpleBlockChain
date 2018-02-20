@@ -20,7 +20,7 @@ class BlockChain(object):
 
     def new_block(self, proof, previous_hash):
         """
-        Create a new Block in the Blockchain
+        Create a new Block in the BlockChain
 
         :param proof: int given by the Proof of Work algorithm
         :param previous_hash: (Optional) str Hash of previous Block
@@ -62,7 +62,7 @@ class BlockChain(object):
 
         return self.last_block['index'] + 1
 
-    def proof_of_work(self, last_proof):
+    def proof_of_work(self, last_block):
         """
         Proof of work is a problem that is "difficult" to solve, but
         "easy" to verify
@@ -72,12 +72,15 @@ class BlockChain(object):
             - X is the previous y (proof)
             - Y is the new proof (solution)
 
-        :param last_proof: int
+        :param last_block: blockChain block
         :return: int
         """
 
         proof = 0
-        while self.valid_proof(last_proof, proof) is False:
+        last_proof = last_block['proof']
+        last_hash = self.hash(last_block)
+
+        while self.valid_proof(last_proof, proof, last_hash) is False:
             proof += 1
 
         return proof
@@ -91,7 +94,13 @@ class BlockChain(object):
         """
 
         parsed_url = urlparse(address)
-        self.nodes.add(parsed_url.netloc)
+        if parsed_url.netloc:
+            self.nodes.add(parsed_url.netloc)
+        elif parsed_url.path:
+            # Accept a url with a scheme like '192.168.1.1:8000'
+            self.nodes.add(parsed_url.path)
+        else:
+            raise ValueError('Invalid URL')
 
     def valid_chain(self, chain):
         """
@@ -109,12 +118,16 @@ class BlockChain(object):
         while current_index < len(chain):
             current_block = chain[current_index]
             print(f'{last_block}')
-            print(f'{block}')
+            print(f'{current_block}')
             print("\n-----------\n")
 
             # Check that the hash of the block is correct
             #
             if current_block['previous_hash'] != self.hash(last_block):
+                return False
+
+            # check that the proof of work is correct
+            if not self.valid_proof(last_block['proof'], current_block['proof'], last_block['previous_hash']):
                 return False
 
             last_block = current_block
@@ -161,17 +174,18 @@ class BlockChain(object):
         return False
 
     @staticmethod
-    def valid_proof(last_proof, proof):
+    def valid_proof(last_proof, proof, last_hash):
         """
         Return whether or not the give proof (int) is valid
         (i.e does the hash have 4 leading zeros)
 
         :param last_proof: int
         :param proof: int
+        :param last_hash: string hash of previous block
         :return: Bool
         """
 
-        guess = f'{last_proof}{proof}'.encode()
+        guess = f'{last_proof}{proof}{last_hash}'.encode()
         guess_hash = hashlib.sha3_256(guess).hexdigest()
 
         return guess_hash[:4] == "0000"
@@ -221,8 +235,7 @@ def mine():
     # calculate the proof of work
     #
     last_block = block_chain.last_block
-    last_proof = last_block['proof']
-    proof = block_chain.proof_of_work(last_proof)
+    proof = block_chain.proof_of_work(last_block)
 
     # reward the miner sender is '0' for the server
     #
