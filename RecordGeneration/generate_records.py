@@ -77,7 +77,6 @@ def random_timestamp(start, end):
 
     :param start: starting date (in format)
     :param end: ending date (in format)
-    :param date_format: date time format (strftime-style)
     :return: random date between start and end in mm/dd/yyyy format
     """
     date_format = "%m/%d/%Y %I:%M %p"
@@ -180,5 +179,6 @@ def test_generate_random_summary():
         print(generate_random_summary())
 
 # test_generate_random_summary()
+
 
 generate_fake_ehr(200, "SampleRecords")
